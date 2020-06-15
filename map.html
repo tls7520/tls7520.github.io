@@ -1,0 +1,122 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Main</title>
+</head>
+
+<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=893b4a5d3b15f6d3e02585fdc9e8f11f"></script>
+
+
+<body>
+
+
+<!-- 지도를 표시할 div 입니다 -->
+<div id="map" style="width:100%;height:600px;" onclick="setZoomable(false);"></div>
+<script>
+	function Point(x,y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	// 지도의 유효영역 표시
+	var points = [
+		new Point(37.466507, 126.948462),
+		new Point(37.468871, 126.951863),
+        new Point(37.468420, 126.953485),
+        new Point(37.468482, 126.956792),
+        new Point(37.467111, 126.956577),
+        new Point(37.466608, 126.957576),
+        new Point(37.463925, 126.957855),
+        new Point(37.461341, 126.956309),
+        new Point(37.461801, 126.949425),
+        new Point(37.465439, 126.948697)
+	]
+
+	function initPage(){
+		console.log(points);
+	}
+
+	var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+	    mapOption = {
+	        center: new kakao.maps.LatLng(37.459882, 126.9497166), // 지도의 중심좌표
+	        level: 5, // 지도의 확대 레벨
+	        //draggable: false, // 드래그로 지도의 확대/축소 막기
+	    };
+
+	// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+	var map = new kakao.maps.Map(mapContainer, mapOption);
+
+	// 버튼 클릭에 따라 지도 확대, 축소 기능을 막거나 풀고 싶은 경우에는 map.setZoomable 함수를 사용합니다
+	function setZoomable(zoomable) {
+	    // 마우스 휠로 지도 확대,축소 가능여부를 설정합니다
+	    map.setZoomable(zoomable);
+	}
+
+	// 지도 마우스 클릭 이벤트
+	kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+
+		var latlng = mouseEvent.latLng;
+		console.log("위도: "+ latlng.getLat() + "/ 경도: " + latlng.getLng());
+
+		var result = isInsideResult(latlng.getLat(), latlng.getLng());
+		alert(result ? "영역 안입니다" : "영역 밖입니다");
+		console.log(result ? "in" : "out");
+	});
+
+	// 안과 밖 구분 함수
+	function isInsideResult(lat, lng) {
+		var crosses = 0;
+
+		for(var i=0; i<points.length; i++) {
+			var j = (i+1)%points.length;
+			//점 B가 선분 (p[i], p[j])의 y좌표 사이에 있음
+			if((points[i].y > lng) != (points[j].y > lng)) {
+				//atX는 점 B를 지나는 수평선과 선분 (p[i], p[j])의 교점
+				var atX = (points[j].x - points[i].x) * (lng - points[i].y) / (points[j].y - points[i].y) + points[i].x;
+				//atX가 오른쪽 반직선과의 교점이 맞으면 교점의 개수를 증가시킨다.
+				if(lat < atX) {
+					crosses++;
+				}
+			}
+		}
+
+		return crosses % 2 > 0;
+	}
+
+	// 지도영역 표시용 배열
+	var polygonPath = [
+		new kakao.maps.LatLng(37.466507, 126.948462),
+		new kakao.maps.LatLng(37.468871, 126.951863),
+	    new kakao.maps.LatLng(37.468420, 126.953485),
+	    new kakao.maps.LatLng(37.468482, 126.956792),
+	    new kakao.maps.LatLng(37.467111, 126.956577),
+	    new kakao.maps.LatLng(37.466608, 126.957576),
+	    new kakao.maps.LatLng(37.463925, 126.957855),
+	    new kakao.maps.LatLng(37.461341, 126.956309),
+	    new kakao.maps.LatLng(37.461801, 126.949425),
+	    new kakao.maps.LatLng(37.465439, 126.948697)
+	];
+
+	// 지도에 표시할 다각형을 생성합니다
+	var polygon = new kakao.maps.Polygon({
+	    path:polygonPath, // 그려질 다각형의 좌표 배열입니다
+	    strokeWeight: 3, // 선의 두께입니다
+	    strokeColor: '#39DE2A', // 선의 색깔입니다
+	    strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+	    strokeStyle: 'longdash', // 선의 스타일입니다
+	    fillColor: '#A2FF99', // 채우기 색깔입니다
+	    fillOpacity: 0.7 // 채우기 불투명도 입니다
+	});
+
+	// 지도에 다각형을 표시합니다
+	polygon.setMap(map);
+
+</script>
+
+
+</body>
+</html>
